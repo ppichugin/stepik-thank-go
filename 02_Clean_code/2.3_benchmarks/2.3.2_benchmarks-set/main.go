@@ -1,7 +1,10 @@
 package main
 
 func main() {
-
+	set := MakeIntSet()
+	set.Add(100)
+	println(set.Contains(50))
+	println(set.Contains(100))
 }
 
 // реализуйте быстрое множество
