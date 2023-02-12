@@ -45,9 +45,14 @@ func main() {
 	defer close(cancel)
 
 	stream := take(cancel, count(cancel, 10), 5)
-	first := <-stream
-	second := <-stream
-	third := <-stream
+	//first := <-stream
+	//second := <-stream
+	//third := <-stream
 
-	fmt.Println(first, second, third)
+	//fmt.Println(first, second, third)
+
+	for st := range stream {
+		fmt.Print(st, " ")
+	}
+	fmt.Println()
 }
