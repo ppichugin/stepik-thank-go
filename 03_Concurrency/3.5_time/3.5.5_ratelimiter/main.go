@@ -13,30 +13,36 @@ var ErrCanceled error = errors.New("canceled")
 func withRateLimit(limit int, fn func()) (handle func() error, cancel func()) {
 	queue := make(chan func())
 	canceled := make(chan struct{})
+	finished := make(chan struct{}, 1)
 
 	rateLimit := time.Second / time.Duration(limit)
 	fmt.Println("rate limit: ", rateLimit)
-	ticker := time.NewTicker(1 * time.Second)
+	throttler := time.Tick(rateLimit)
 
 	starter := func() {
 		for i := 0; i < limit; i++ {
 			select {
 			case <-canceled:
 				return
-			case f := <-queue:
-				f()
+			case <-throttler:
+				select {
+				case f := <-queue:
+					go f()
+				case <-canceled:
+					return
+				}
 			}
 		}
+		finished <- struct{}{}
 	}
 
 	go func() {
-		defer ticker.Stop()
 		defer close(queue)
 		for {
 			select {
 			case <-canceled:
 				return
-			case <-ticker.C:
+			case <-finished:
 				go starter()
 			}
 		}
@@ -57,9 +63,10 @@ func withRateLimit(limit int, fn func()) (handle func() error, cancel func()) {
 			return
 		default:
 			close(canceled)
-			//close(queue)
 		}
 	}
+
+	finished <- struct{}{}
 
 	return handle, cancel
 }
@@ -71,7 +78,7 @@ func main() {
 	work := func() {
 		dots++
 		fmt.Print(".")
-		//time.Sleep(200 * time.Millisecond)
+		//time.Sleep(500 * time.Millisecond)
 	}
 
 	handle, cancel := withRateLimit(10, work)
