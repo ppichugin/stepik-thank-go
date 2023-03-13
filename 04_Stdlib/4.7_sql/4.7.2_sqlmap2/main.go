@@ -65,13 +65,6 @@ func (m *SQLMap) Set(key string, val any) error {
 	return nil
 }
 
-//// SetStmt устанавливает Prepared Statement для операции Set
-//func SetStmt(m *SQLMap) (*sql.Stmt, error) {
-//	stmt, err := m.conn.Prepare(`
-//		insert into map(key, val) values (?, ?) on conflict (key) do update set val = excluded.val`)
-//	return stmt, err
-//}
-
 // SetItems устанавливает значения указанных ключей.
 func (m *SQLMap) SetItems(items map[string]any) error {
 	stmt := m.stmt["set"]
